@@ -55,8 +55,8 @@ namespace LotService.Services
                 Id = Guid.NewGuid().ToString(),
                 Description = "Invoice for lot " + lot.LotName,
                 PaidStatus = false,
-                Address = "myaddress",
-                Email = "jeffstampe@hotmail.com",
+                Address = user.Address,
+                Email = user.Email,
                 Price = highestBid.Amount
             };
 
