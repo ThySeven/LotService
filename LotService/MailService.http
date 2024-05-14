@@ -1,0 +1,6 @@
+@MicroservicesWEBAPITemplate_HostAddress = http://localhost:5143
+
+GET {{MicroservicesWEBAPITemplate_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

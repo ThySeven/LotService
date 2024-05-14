@@ -1,0 +1,65 @@
+﻿{
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:4177",
+      "sslPort": 44311
+    }
+  },
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "applicationUrl": "http://localhost:5145",
+      "environmentVariables": {
+        "MongoDBConnectionString": "mongodb://admin:1234@localhost:27018",
+        "LokiServerName": "LokiServer",
+        "LokiEndpoint": "http://localhost:3100",
+        "RabbitMQHostName": "localhost",
+        "RabbitMQQueueName": "BiddingQueue",
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "VAULT_IP": "https://localhost:8201",
+        "VAULT_SECRET": "1a2b3c4d-5e6f-7g8h-9i0j-123456789abc",
+        "GrafanaHostname": "lotservice",
+        "UserServiceEndpoint": "localhost:3015",
+        "InvoiceServiceEndpoint": "localhost:5143",
+        "BiddingServiceEndpoint": "localhost:3020",
+        "PublicIP": "localhost:9090"
+      }
+    },
+    "https": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "applicationUrl": "https://localhost:7246;http://localhost:5145",
+      "environmentVariables": {
+        "MongoDBConnectionString": "mongodb://admin:1234@localhost:27018",
+        "LokiServerName": "LokiServer",
+        "LokiEndpoint": "http://localhost:3100",
+        "RabbitMQHostName": "localhost",
+        "RabbitMQQueueName": "BiddingQueue",
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "VAULT_IP": "https://localhost:8201",
+        "VAULT_SECRET": "1a2b3c4d-5e6f-7g8h-9i0j-123456789abc",
+        "GrafanaHostname": "lotservice",
+        "UserServiceEndpoint": "localhost:3015",
+        "InvoiceServiceEndpoint": "localhost:5143",
+        "BiddingServiceEndpoint": "localhost:3020",
+        "PublicIP": "localhost:9090"
+      }
+    },
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
