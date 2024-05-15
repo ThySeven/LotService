@@ -124,11 +124,25 @@ namespace LotService.Services
         {
 
             var lot = await _lotsCollection.Find(l => l.LotId == bid.LotId).FirstOrDefaultAsync();
+            UserModelDTO user;
             if (lot == null)
             {
                 AuctionCoreLogger.Logger.Error($"Lot for bid not found {bid.LotId} {bid.BidderId}");
                 throw new Exception("Lot not found");
             }
+
+            try
+            {
+                user = await FetchUserAsync(bid.BidderId);
+
+            }
+            catch
+            {
+                AuctionCoreLogger.Logger.Error($"User for bid not found {bid.LotId} {bid.BidderId}");
+                throw new Exception("User not found");
+
+            }
+
 
             if (bid.Timestamp > lot.LotEndTime)
             {
@@ -137,7 +151,6 @@ namespace LotService.Services
             }
 
             var highestBid = lot.Bids.OrderByDescending(b => b.Amount).FirstOrDefault();
-            UserModelDTO user = await FetchUserAsync(bid.BidderId);
             if (highestBid != null && bid.Amount <= highestBid.Amount)
             {
                 AuctionCoreLogger.Logger.Warn($"Bid made that is under the current price by {user.UserName} \nAttempt:{bid.Amount}\nHighest Bid: {highestBid.Amount}");

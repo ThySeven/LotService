@@ -48,6 +48,7 @@ namespace LotService.Services
                 catch (Exception ex)
                 {
                     AuctionCoreLogger.Logger.Error(ex);
+                    AuctionCoreLogger.Logger.Error("Failed to receive/parse bid from bidservice");
                 }
 
             };
