@@ -122,18 +122,18 @@ namespace LotService.Services
 
         public async Task UpdateLotPrice(BidModel bid)
         {
+
             var lot = await _lotsCollection.Find(l => l.LotId == bid.LotId).FirstOrDefaultAsync();
-
-            if(bid.Timestamp > lot.LotEndTime)
-            {
-                AuctionCoreLogger.Logger.Error($"Bid for lot {bid.LotId} {bid.BidderId} attempted {(bid.Timestamp - lot.LotEndTime).Seconds} seconds past lot end time");
-                throw new Exception("Lot has ended");
-            }
-
             if (lot == null)
             {
                 AuctionCoreLogger.Logger.Error($"Lot for bid not found {bid.LotId} {bid.BidderId}");
                 throw new Exception("Lot not found");
+            }
+
+            if (bid.Timestamp > lot.LotEndTime)
+            {
+                AuctionCoreLogger.Logger.Error($"Bid for lot {bid.LotId} {bid.BidderId} attempted {(bid.Timestamp - lot.LotEndTime).Seconds} seconds past lot end time");
+                throw new Exception("Lot has ended");
             }
 
             var highestBid = lot.Bids.OrderByDescending(b => b.Amount).FirstOrDefault();
