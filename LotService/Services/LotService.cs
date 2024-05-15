@@ -73,18 +73,32 @@ namespace LotService.Services
         {
             var response = await WebManager.GetInstance.HttpClient.GetAsync($"http://{Environment.GetEnvironmentVariable("UserServiceEndpoint")}/user/{bidderId}");
             AuctionCoreLogger.Logger.Info($"Lotservice call to {response.RequestMessage.RequestUri} {response.StatusCode}");
+
             if (response.IsSuccessStatusCode)
             {
                 UserModelDTO user = null;
                 try
                 {
-                    user = await response.Content.ReadFromJsonAsync<UserModelDTO>();
-                    AuctionCoreLogger.Logger.Info($"Fetched user from userservice: {JsonSerializer.Serialize(user)}");
+                    var content = await response.Content.ReadAsStringAsync();
+                    AuctionCoreLogger.Logger.Info($"Response content: {content}");
 
+                    if (!string.IsNullOrEmpty(content))
+                    {
+                        user = JsonSerializer.Deserialize<UserModelDTO>(content);
+                        AuctionCoreLogger.Logger.Info($"Fetched user from userservice: {JsonSerializer.Serialize(user)}");
+                    }
+                    else
+                    {
+                        AuctionCoreLogger.Logger.Warn("User service response content is empty.");
+                    }
                 }
-                catch(Exception ex)
+                catch (JsonException jsonEx)
                 {
-                    AuctionCoreLogger.Logger.Warn($"Failed to deserialize user form userservice: {ex}");
+                    AuctionCoreLogger.Logger.Warn($"Failed to deserialize user from userservice: {jsonEx}");
+                }
+                catch (Exception ex)
+                {
+                    AuctionCoreLogger.Logger.Warn($"Unexpected error occurred: {ex}");
                 }
                 return user;
             }
