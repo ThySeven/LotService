@@ -1,5 +1,6 @@
 ﻿using LotService.Models;
 using MongoDB.Driver;
+using System.Text.Json;
 
 namespace LotService.Services
 {
@@ -73,7 +74,9 @@ namespace LotService.Services
             var response = await WebManager.GetInstance.HttpClient.GetAsync($"http://{Environment.GetEnvironmentVariable("UserServiceEndpoint")}/user/{bidderId}");
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadFromJsonAsync<UserModelDTO>();
+                UserModelDTO user = await response.Content.ReadFromJsonAsync<UserModelDTO>()
+                AuctionCoreLogger.Logger.Info($"Fetched user from userservice: {JsonSerializer.Serialize(user)}");
+                return user;
             }
             else
             {
