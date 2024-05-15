@@ -72,6 +72,7 @@ namespace LotService.Services
         private async Task<UserModelDTO> FetchUserAsync(string bidderId)
         {
             var response = await WebManager.GetInstance.HttpClient.GetAsync($"http://{Environment.GetEnvironmentVariable("UserServiceEndpoint")}/user/{bidderId}");
+            AuctionCoreLogger.Logger.Info($"Lotservice call to {response.StatusCode}");
             if (response.IsSuccessStatusCode)
             {
                 UserModelDTO user = await response.Content.ReadFromJsonAsync<UserModelDTO>();
@@ -180,7 +181,7 @@ namespace LotService.Services
                     NewLotPrice = bid.Amount,
                     NewBidLink = $"https://{Environment.GetEnvironmentVariable("PublicIp")}"
                 };
-                var response = await WebManager.GetInstance.HttpClient.PostAsJsonAsync($"https://{Environment.GetEnvironmentVariable("BiddingServiceEndpoint")}/api/notification", notification);
+                var response = await WebManager.GetInstance.HttpClient.PostAsJsonAsync($"http://{Environment.GetEnvironmentVariable("BiddingServiceEndpoint")}/api/notification", notification);
                 if (response.IsSuccessStatusCode)
                 {
                     AuctionCoreLogger.Logger.Info($"Overbid notification sent to {oldUser.Email}");
