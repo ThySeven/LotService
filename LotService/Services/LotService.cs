@@ -199,6 +199,10 @@ namespace LotService.Services
             if (highestBid != null)
             {
                 UserModelDTO oldUser = await FetchUserAsync(highestBid.BidderId);
+
+                string input = $"{lot.LotId}-{user.Id}-{bid.Timestamp.Ticks}";
+                byte[] inputBytes = System.Text.Encoding.UTF8.GetBytes(input);
+                string base64bidagain = Convert.ToBase64String(inputBytes);
                 Notification notification = new Notification()
                 {
                     LotId = lot.LotId,
@@ -206,7 +210,7 @@ namespace LotService.Services
                     TimeStamp = bid.Timestamp,
                     ReceiverMail = oldUser.Email,
                     NewLotPrice = bid.Amount,
-                    NewBidLink = $"https://{Environment.GetEnvironmentVariable("PublicIp")}"
+                    NewBidLink = $"https://{Environment.GetEnvironmentVariable("PublicIP")}/bidagain/{base64bidagain}"
                 };
                 var response = await WebManager.GetInstance.HttpClient.PostAsJsonAsync($"http://{Environment.GetEnvironmentVariable("BiddingServiceEndpoint")}/api/notification", notification);
                 if (response.IsSuccessStatusCode)
