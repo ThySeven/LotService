@@ -38,11 +38,18 @@ namespace LotService.Services
             {
                 var mailBody = ea.Body.ToArray();
                 var uftString = Encoding.UTF8.GetString(mailBody);
-                var message = JsonSerializer.Deserialize<BidModel>(uftString);
+                try
+                {
+                    var message = JsonSerializer.Deserialize<BidModel>(uftString);
+                    AuctionCoreLogger.Logger.Info($"Recieved bid from biddingservice: \nBidderid: {message.BidderId} \nAmount: {message.Amount} \nTime: {message.Timestamp}");
+                    await _lotservice.UpdateLotPrice(message); // Adjust according to your actual service method
 
-                AuctionCoreLogger.Logger.Info($"Recieved bid from biddingservice: \nBidderid: {message.BidderId} \nAmount: {message.Amount} \nTime: {message.Timestamp}");
+                }
+                catch (Exception ex)
+                {
+                    AuctionCoreLogger.Logger.Error(ex);
+                }
 
-                await _lotservice.UpdateLotPrice(message); // Adjust according to your actual service method
             };
 
             channel.BasicConsume(queue: Environment.GetEnvironmentVariable("RabbitMQQueueName"),
@@ -57,6 +64,7 @@ namespace LotService.Services
 
         private async Task RunEveryFiveSeconds(CancellationToken stoppingToken)
         {
+            AuctionCoreLogger.Logger.Info("Running 5-second listener");
             while (!stoppingToken.IsCancellationRequested)
             {
                 await Task.Run(() => _lotservice.CheckLotTimer());
@@ -66,6 +74,7 @@ namespace LotService.Services
 
         private async Task RunEverySecond(CancellationToken stoppingToken)
         {
+            AuctionCoreLogger.Logger.Info("Running 1-second listener");
             while (!stoppingToken.IsCancellationRequested)
             {
                 // 
