@@ -74,7 +74,7 @@ namespace LotService.Services
             var response = await WebManager.GetInstance.HttpClient.GetAsync($"http://{Environment.GetEnvironmentVariable("UserServiceEndpoint")}/user/{bidderId}");
             if (response.IsSuccessStatusCode)
             {
-                UserModelDTO user = await response.Content.ReadFromJsonAsync<UserModelDTO>()
+                UserModelDTO user = await response.Content.ReadFromJsonAsync<UserModelDTO>();
                 AuctionCoreLogger.Logger.Info($"Fetched user from userservice: {JsonSerializer.Serialize(user)}");
                 return user;
             }
