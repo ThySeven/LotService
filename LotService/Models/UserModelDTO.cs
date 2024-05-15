@@ -2,13 +2,22 @@
 {
     public class UserModelDTO
     {
-        public string Id { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string Email { get; set; }
-        public string UserName { get; set; }
-        public string Address { get; set; }
-        public string PhoneNumber { get; set; }
-        public bool Verified { get; set; } = false;
+        private string id;
+        private string firstName;
+        private string lastName;
+        private string email;
+        private string userName;
+        private string address;
+        private string phoneNumber;
+        private bool verified = false;
+
+        public string Id { get => id; set => id = value; }
+        public string FirstName { get => firstName; set => firstName = value; }
+        public string LastName { get => lastName; set => lastName = value; }
+        public string Email { get => email; set => email = value; }
+        public string UserName { get => userName; set => userName = value; }
+        public string Address { get => address; set => address = value; }
+        public string PhoneNumber { get => phoneNumber; set => phoneNumber = value; }
+        public bool Verified { get => verified; set => verified = value; }
     }
 }

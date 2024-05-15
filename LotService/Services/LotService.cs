@@ -80,11 +80,15 @@ namespace LotService.Services
                 try
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    AuctionCoreLogger.Logger.Info($"Response content: {content}");
+                    AuctionCoreLogger.Logger.Info($"Raw JSON Response content: {content}");
 
                     if (!string.IsNullOrEmpty(content))
                     {
-                        user = JsonSerializer.Deserialize<UserModelDTO>(content);
+                        var options = new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        };
+                        user = JsonSerializer.Deserialize<UserModelDTO>(content, options);
                         AuctionCoreLogger.Logger.Info($"Fetched user from userservice: {JsonSerializer.Serialize(user)}");
                     }
                     else
