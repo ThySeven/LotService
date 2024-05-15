@@ -27,25 +27,27 @@ namespace LotService.Services
             using var connection = factory.CreateConnection();
             using var channel = connection.CreateModel();
 
-            channel.QueueDeclare(queue: "RabbitMQQueueName",
+            channel.QueueDeclare(queue: Environment.GetEnvironmentVariable("RabbitMQQueueName"),
                                  durable: false,
                                  exclusive: false,
                                  autoDelete: false,
                                  arguments: null);
 
-            var mailConsumer = new EventingBasicConsumer(channel);
-            mailConsumer.Received += async (model, ea) =>
+            var biddingConsumer = new EventingBasicConsumer(channel);
+            biddingConsumer.Received += async (model, ea) =>
             {
                 var mailBody = ea.Body.ToArray();
                 var uftString = Encoding.UTF8.GetString(mailBody);
                 var message = JsonSerializer.Deserialize<BidModel>(uftString);
 
+                AuctionCoreLogger.Logger.Info($"Recieved bid from biddingservice: \nBidderid: {message.BidderId} \nAmount: {message.Amount} \nTime: {message.Timestamp}");
+
                 await _lotservice.UpdateLotPrice(message); // Adjust according to your actual service method
             };
 
-            channel.BasicConsume(queue: "RabbitMQQueueName",
+            channel.BasicConsume(queue: Environment.GetEnvironmentVariable("RabbitMQQueueName"),
                                  autoAck: true,
-                                 consumer: mailConsumer);
+                                 consumer: biddingConsumer);
 
             var task1 = Task.Run(async () => await RunEveryFiveSeconds(stoppingToken));
             var task2 = Task.Run(async () => await RunEverySecond(stoppingToken));
