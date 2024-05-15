@@ -40,7 +40,7 @@ namespace LotService.Services
             if (highestBid == null)
             {
                 AuctionCoreLogger.Logger.Error($"Lot {lot.LotName} - {lot.LotId} closed with no bidders");
-                throw new Exception("No bids found for the lot");
+                throw new Exception("No bids found for the lot CloseLot");
             }
 
             var user = await FetchUserAsync(highestBid.BidderId);
@@ -64,7 +64,7 @@ namespace LotService.Services
             if (!response.IsSuccessStatusCode)
             {
                 AuctionCoreLogger.Logger.Error($"Lot {lot.LotName} - {lot.LotId} failed to send and create invoice \nStatuscode: {response.StatusCode} \nRequestMessage {response.RequestMessage} \nContent: {response.Content}");
-                throw new Exception("Failed to create invoice");
+                throw new Exception("Failed to create invoice CloseLot");
             }
         }
 
@@ -128,7 +128,7 @@ namespace LotService.Services
             if (lot == null)
             {
                 AuctionCoreLogger.Logger.Error($"Lot for bid not found {bid.LotId} {bid.BidderId}");
-                throw new Exception("Lot not found");
+                throw new Exception("Lot not found UpdateLotPrice");
             }
 
             try
@@ -136,10 +136,11 @@ namespace LotService.Services
                 user = await FetchUserAsync(bid.BidderId);
 
             }
-            catch
+            catch(Exception ex)
             {
                 AuctionCoreLogger.Logger.Error($"User for bid not found {bid.LotId} {bid.BidderId}");
-                throw new Exception("User not found");
+                AuctionCoreLogger.Logger.Error($"{ex}");
+                throw new Exception("User not found UpdateLotPrice");
 
             }
 
@@ -147,7 +148,7 @@ namespace LotService.Services
             if (bid.Timestamp > lot.LotEndTime)
             {
                 AuctionCoreLogger.Logger.Error($"Bid for lot {bid.LotId} {bid.BidderId} attempted {(bid.Timestamp - lot.LotEndTime).Seconds} seconds past lot end time");
-                throw new Exception("Lot has ended");
+                throw new Exception("Lot has ended UpdateLotPrice");
             }
 
             var highestBid = lot.Bids.OrderByDescending(b => b.Amount).FirstOrDefault();
