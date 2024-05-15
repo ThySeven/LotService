@@ -1,4 +1,3 @@
-using LotService;
 using LotService.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;

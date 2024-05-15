@@ -1,5 +1,4 @@
 ﻿using LotService.Models;
-using LotService.Services;
 using NLog.Config;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -8,7 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace LotService
+namespace LotService.Services
 {
     public class Worker : BackgroundService
     {
