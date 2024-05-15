@@ -211,11 +211,11 @@ namespace LotService.Services
                 var response = await WebManager.GetInstance.HttpClient.PostAsJsonAsync($"http://{Environment.GetEnvironmentVariable("BiddingServiceEndpoint")}/api/notification", notification);
                 if (response.IsSuccessStatusCode)
                 {
-                    AuctionCoreLogger.Logger.Info($"Overbid notification sent to {oldUser.Email}");
+                    AuctionCoreLogger.Logger.Info($"Overbid notification sent to notificationservice for: {oldUser.Email}");
                 }
                 else
                 {
-                    AuctionCoreLogger.Logger.Info($"Failed to contact biddingservice {response.ReasonPhrase}");
+                    AuctionCoreLogger.Logger.Info($"Failed to contact biddingservice {response.ReasonPhrase}\n Notification:\n {JsonSerializer.Serialize(notification)}");
                 }
             }
             AuctionCoreLogger.Logger.Info($"Lot {lot.LotName} - {lot.LotId} updated");
