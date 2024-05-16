@@ -7,6 +7,7 @@ namespace LotService.Services
     public class LotService : ILotService
     {
         private readonly IMongoCollection<LotModel> _lotsCollection;
+        private readonly HttpClient _httpClient;
         private string _connectionString = Environment.GetEnvironmentVariable("MongoDBConnectionString");
 
         public LotService()
@@ -14,31 +15,35 @@ namespace LotService.Services
             var mongoClient = new MongoClient(_connectionString);
             var database = mongoClient.GetDatabase("AuctionCoreServices");
             _lotsCollection = database.GetCollection<LotModel>("Lots");
+            _httpClient = new HttpClient();
         }
 
         public async Task CheckLotTimer()
         {
-            var filter = Builders<LotModel>.Filter.Where(lot => lot.LotEndTime <= DateTime.Now && lot.Open);
+            var filter = Builders<LotModel>.Filter.And(
+                Builders<LotModel>.Filter.Where(lot => lot.Open),
+                Builders<LotModel>.Filter.Where(lot => lot.LotEndTime <= DateTime.Now)
+            );
+
             var expiredLots = await _lotsCollection.Find(filter).ToListAsync();
 
-            // AuctionCoreLogger.Logger.Info($"Closed {expiredLots.Count} lots: {string.Join("\n", expiredLots.Select(x => x.LotName))}");
             foreach (var lot in expiredLots)
             {
                 await CloseLot(lot);
             }
             if (expiredLots.Count > 0)
                 AuctionCoreLogger.Logger.Info($"Closed {expiredLots.Count} lots");
+
         }
 
         public async Task CloseLot(LotModel mylot)
         {
-            LotModel lot = await (await _lotsCollection.FindAsync(l => l.LotId == mylot.LotId)).FirstOrDefaultAsync();
-            if (lot == null || !lot.Open)
+            LotModel lot = await _lotsCollection.Find(l => l.LotId == mylot.LotId).FirstOrDefaultAsync();
+            if (!lot.Open)
             {
-                AuctionCoreLogger.Logger.Info($"Attempt to close already closed or non-existent lot: {mylot.LotId}");
+                AuctionCoreLogger.Logger.Info($"Attempt to close already closed lot: {lot.LotId}");
                 return;
             }
-
             lot.Open = false;
             await _lotsCollection.ReplaceOneAsync(l => l.LotId == lot.LotId, lot);
 
@@ -54,8 +59,8 @@ namespace LotService.Services
                 var user = await FetchUserAsync(highestBid.BidderId);
                 if (user == null)
                 {
-                    // AuctionCoreLogger.Logger.Error($"Lot {lot.LotName} - {lot.LotId} closed with highest bidder having no account");
-                    // throw new Exception("User not found");
+                    //AuctionCoreLogger.Logger.Error($"Lot {lot.LotName} - {lot.LotId} closed with highest bidder having no account");
+                    //throw new Exception("User not found");
                 }
 
                 var invoice = new InvoiceModel
@@ -63,39 +68,38 @@ namespace LotService.Services
                     Id = Guid.NewGuid().ToString(),
                     Description = $"{lot.LotName} - {lot.Location}",
                     PaidStatus = false,
-                    Address = user?.Address,
-                    Email = user?.Email,
+                    Address = user.Address,
+                    Email = user.Email,
                     Price = highestBid.Amount
                 };
 
-                var response = await WebManager.GetInstance.HttpClient.PostAsJsonAsync($"http://{Environment.GetEnvironmentVariable("InvoiceServiceEndpoint")}/invoice/create", invoice).ConfigureAwait(false);
+                var response = await WebManager.GetInstance.HttpClient.PostAsJsonAsync($"http://{Environment.GetEnvironmentVariable("InvoiceServiceEndpoint")}/invoice/create", invoice);
                 if (!response.IsSuccessStatusCode)
                 {
-                    AuctionCoreLogger.Logger.Error($"Lot {lot.LotName} - {lot.LotId} failed to send and create invoice \nStatuscode: {response.StatusCode} \nRequestMessage: {response.RequestMessage} \nContent: {response.Content}");
+                    AuctionCoreLogger.Logger.Error($"Lot {lot.LotName} - {lot.LotId} failed to send and create invoice \nStatuscode: {response.StatusCode} \nRequestMessage {response.RequestMessage} \nContent: {response.Content}");
                     throw new Exception("Failed to create invoice CloseLot");
                 }
                 else
                 {
-                    var winningUser = await FetchUserAsync(lot.Bids.First().BidderId);
-                    AuctionCoreLogger.Logger.Info($"{lot.LotName} {lot.LotId} ended at {DateTime.Now} winner: {winningUser?.UserName} at {lot.Bids.First().Amount} Dkk");
+                    AuctionCoreLogger.Logger.Info($"{lot.LotName} {lot.LotId} ended at {DateTime.Now} winner: {(await FetchUserAsync(lot.Bids.First().BidderId)).UserName} at {lot.Bids.First().Amount} Dkk");
                 }
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
-                AuctionCoreLogger.Logger.Error($"LotService error contacting maybe invoiceservice {ex}");
+                AuctionCoreLogger.Logger.Error(ex.Message);
             }
         }
 
         private async Task<UserModelDTO> FetchUserAsync(string bidderId)
         {
-            var response = await WebManager.GetInstance.HttpClient.GetAsync($"http://{Environment.GetEnvironmentVariable("UserServiceEndpoint")}/user/{bidderId}").ConfigureAwait(false);
+            var response = await WebManager.GetInstance.HttpClient.GetAsync($"http://{Environment.GetEnvironmentVariable("UserServiceEndpoint")}/user/{bidderId}");
 
             if (response.IsSuccessStatusCode)
             {
                 UserModelDTO user = null;
                 try
                 {
-                    var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    var content = await response.Content.ReadAsStringAsync();
 
                     if (!string.IsNullOrEmpty(content))
                     {
@@ -129,25 +133,25 @@ namespace LotService.Services
 
         public async Task CreateLot(LotModel lot)
         {
-            await _lotsCollection.InsertOneAsync(lot).ConfigureAwait(false);
+            await _lotsCollection.InsertOneAsync(lot);
             AuctionCoreLogger.Logger.Info($"Lot {lot.LotName} - {lot.LotId} created");
         }
 
         public async Task DeleteLot(string lotId)
         {
-            var lot = await GetLot(lotId).ConfigureAwait(false);
-            await _lotsCollection.DeleteOneAsync(l => l.LotId == lotId).ConfigureAwait(false);
+            var lot = await GetLot(lotId);
+            await _lotsCollection.DeleteOneAsync(lot => lot.LotId == lotId);
             AuctionCoreLogger.Logger.Info($"Lot {lot.LotName} - {lot.LotId} deleted");
         }
 
         public async Task<LotModel> GetLot(string lotId)
         {
-            return await _lotsCollection.Find(lot => lot.LotId == lotId).FirstOrDefaultAsync().ConfigureAwait(false);
+            return await _lotsCollection.Find(lot => lot.LotId == lotId).FirstOrDefaultAsync();
         }
 
         public async Task<List<LotModel>> GetLots()
         {
-            return await _lotsCollection.Find(_ => true).ToListAsync().ConfigureAwait(false);
+            return await _lotsCollection.Find(_ => true).ToListAsync();
         }
 
         public async Task UpdateLot(LotModel lot)
@@ -161,13 +165,14 @@ namespace LotService.Services
                 .Set(l => l.Open, lot.Open)
                 .Set(l => l.LotCreationTime, lot.LotCreationTime);
 
-            await _lotsCollection.UpdateOneAsync(l => l.LotId == lot.LotId, update).ConfigureAwait(false);
+            await _lotsCollection.UpdateOneAsync(l => l.LotId == lot.LotId, update);
             AuctionCoreLogger.Logger.Info($"Lot {lot.LotName} - {lot.LotId} updated");
         }
 
         public async Task UpdateLotPrice(BidModel bid)
         {
-            var lot = await _lotsCollection.Find(l => l.LotId == bid.LotId).FirstOrDefaultAsync().ConfigureAwait(false);
+
+            var lot = await _lotsCollection.Find(l => l.LotId == bid.LotId).FirstOrDefaultAsync();
             UserModelDTO user;
             if (lot == null)
             {
@@ -177,13 +182,14 @@ namespace LotService.Services
 
             try
             {
-                user = await FetchUserAsync(bid.BidderId).ConfigureAwait(false);
+                user = await FetchUserAsync(bid.BidderId);
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 AuctionCoreLogger.Logger.Error($"User for bid not found {bid.LotId} {bid.BidderId} {ex}");
                 throw new Exception("User not found UpdateLotPrice");
             }
+
 
             if (bid.Timestamp > lot.LotEndTime)
             {
@@ -194,25 +200,24 @@ namespace LotService.Services
             var highestBid = lot.Bids.OrderByDescending(b => b.Amount).FirstOrDefault();
             if (highestBid != null && bid.Amount <= highestBid.Amount)
             {
-                AuctionCoreLogger.Logger.Warn($"Bid made that is under the current price by {user.UserName} \nAttempt: {bid.Amount}\nHighest Bid: {highestBid.Amount}");
+                AuctionCoreLogger.Logger.Warn($"Bid made that is under the current price by {user.UserName} \nAttempt:{bid.Amount}\nHighest Bid: {highestBid.Amount}");
                 return;
             }
+
 
             lot.Bids.Add(bid);
             lot.Bids = lot.Bids.OrderByDescending(b => b.Amount).ToList();
             if (bid.Timestamp > lot.LotEndTime.AddSeconds(-30))
                 lot.LotEndTime = lot.LotEndTime.AddSeconds(30);
-
-            await _lotsCollection.ReplaceOneAsync(l => l.LotId == lot.LotId, lot).ConfigureAwait(false);
+            await _lotsCollection.ReplaceOneAsync(l => l.LotId == lot.LotId, lot);
 
             if (highestBid != null)
             {
-                UserModelDTO oldUser = await FetchUserAsync(highestBid.BidderId).ConfigureAwait(false);
+                UserModelDTO oldUser = await FetchUserAsync(highestBid.BidderId);
 
                 string input = $"{lot.LotId}-{user.Id}-{bid.Timestamp.Ticks}";
                 byte[] inputBytes = System.Text.Encoding.UTF8.GetBytes(input);
                 string base64bidagain = Convert.ToBase64String(inputBytes);
-
                 Notification notification = new Notification()
                 {
                     LotId = lot.LotId,
@@ -220,10 +225,9 @@ namespace LotService.Services
                     TimeStamp = bid.Timestamp,
                     ReceiverMail = oldUser.Email,
                     NewLotPrice = bid.Amount,
-                    NewBidLink = $"{Environment.GetEnvironmentVariable("PublicIP")}/bidagain/{base64bidagain}"
+                    NewBidLink = $"https://{Environment.GetEnvironmentVariable("PublicIP")}/bidagain/{base64bidagain}"
                 };
-
-                var response = await WebManager.GetInstance.HttpClient.PostAsJsonAsync($"http://{Environment.GetEnvironmentVariable("BiddingServiceEndpoint")}/api/notification", notification).ConfigureAwait(false);
+                var response = await WebManager.GetInstance.HttpClient.PostAsJsonAsync($"http://{Environment.GetEnvironmentVariable("BiddingServiceEndpoint")}/api/notification", notification);
                 if (response.IsSuccessStatusCode)
                 {
                     AuctionCoreLogger.Logger.Info($"Overbid notification sent to notificationservice for: {oldUser.Email}");
@@ -233,8 +237,8 @@ namespace LotService.Services
                     AuctionCoreLogger.Logger.Info($"Failed to contact biddingservice {response.ReasonPhrase}\n Notification:\n {JsonSerializer.Serialize(notification)}");
                 }
             }
-
             AuctionCoreLogger.Logger.Info($"Lot {lot.LotName} - {lot.LotId} updated");
+
         }
     }
 }
