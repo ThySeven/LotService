@@ -91,7 +91,6 @@ namespace LotService.Services
         private async Task<UserModelDTO> FetchUserAsync(string bidderId)
         {
             var response = await WebManager.GetInstance.HttpClient.GetAsync($"http://{Environment.GetEnvironmentVariable("UserServiceEndpoint")}/user/{bidderId}");
-            AuctionCoreLogger.Logger.Info($"Lotservice call to {response.RequestMessage.RequestUri} {response.StatusCode}");
 
             if (response.IsSuccessStatusCode)
             {
@@ -99,7 +98,6 @@ namespace LotService.Services
                 try
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    AuctionCoreLogger.Logger.Info($"Raw JSON Response content: {content}");
 
                     if (!string.IsNullOrEmpty(content))
                     {
@@ -108,7 +106,6 @@ namespace LotService.Services
                             PropertyNameCaseInsensitive = true
                         };
                         user = JsonSerializer.Deserialize<UserModelDTO>(content, options);
-                        AuctionCoreLogger.Logger.Info($"Fetched user from userservice: {JsonSerializer.Serialize(user)}");
                     }
                     else
                     {
@@ -187,8 +184,7 @@ namespace LotService.Services
             }
             catch(Exception ex)
             {
-                AuctionCoreLogger.Logger.Error($"User for bid not found {bid.LotId} {bid.BidderId}");
-                AuctionCoreLogger.Logger.Error($"{ex}");
+                AuctionCoreLogger.Logger.Error($"User for bid not found {bid.LotId} {bid.BidderId} {ex}");
                 throw new Exception("User not found UpdateLotPrice");
             }
 
