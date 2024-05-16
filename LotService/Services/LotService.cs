@@ -84,7 +84,7 @@ namespace LotService.Services
             }
             catch(Exception ex)
             {
-                AuctionCoreLogger.Logger.Error(ex.Message);
+                AuctionCoreLogger.Logger.Error($"LotService error contacting maybe invoiceservice {ex}");
             }
         }
 
