@@ -14,11 +14,11 @@ namespace LotService.Controllers;
 public class LotController : ControllerBase
 {
 
-    private readonly ILogger<AuthController> _logger;
+    private readonly ILogger<LotController> _logger;
     private readonly IConfiguration _config;
     private readonly ILotService _lotService;
 
-    public LotController(ILogger<AuthController> logger, IConfiguration config, ILotService lotService)
+    public LotController(ILogger<LotController> logger, IConfiguration config, ILotService lotService)
     {
         _config = config;
         _logger = logger;

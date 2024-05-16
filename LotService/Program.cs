@@ -1,4 +1,3 @@
-using LotService;
 using LotService.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -68,24 +67,35 @@ builder.Services
             // Check for the internal API key header
             if (context.Request.Headers.TryGetValue("X-Internal-ApiKey", out var extractedApiKey))
             {
-                var internalApiKey = vaultInternalApiKey;
+                var internalApiKey = vaultInternalApiKey; // or fetch from configuration
                 if (internalApiKey.Equals(extractedApiKey))
                 {
-                    // Set a flag to identify the request as internal
+                    // Set a flag to indicate this is an internal request
                     context.HttpContext.Items["InternalRequest"] = true;
-                    // Short-circuit JWT token validation since it’s an internal request
+
+                    // Skip JWT token validation for internal requests
                     context.NoResult();
-                    return Task.CompletedTask;
+                    context.Response.Headers.Add("X-Auth-Skipped", "true");
                 }
             }
             return Task.CompletedTask;
         },
         OnTokenValidated = context =>
         {
-            // If the request is marked as internal, bypass further processing
-            if (context.HttpContext.Items.TryGetValue("InternalRequest", out var internalRequest) && (bool)internalRequest)
+            // If it's an internal request, mark it as successful
+            if (context.HttpContext.Items.ContainsKey("InternalRequest"))
             {
                 context.Success();
+                return Task.CompletedTask;
+            }
+            return Task.CompletedTask;
+        },
+        OnChallenge = context =>
+        {
+            // If it's an internal request, don't return a 401 error
+            if (context.HttpContext.Items.ContainsKey("InternalRequest"))
+            {
+                context.HandleResponse(); // This suppresses the default 401
             }
             return Task.CompletedTask;
         }
@@ -113,7 +123,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
