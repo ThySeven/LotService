@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using NLog;
 using NLog.Web;
+using System.Security.Claims;
 using System.Text;
 using VaultSharp;
 using VaultSharp.V1.AuthMethods;
