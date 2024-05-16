@@ -40,9 +40,9 @@ namespace LotService.Services
 
         }
 
-        public async Task CloseLot(LotModel lot)
+        public async Task CloseLot(LotModel mylot)
         {
-            lot = _lotsCollection.Find(l => l.LotId == lot.LotId).First();
+            LotModel lot = (await _lotsCollection.FindAsync(l => l.LotId == mylot.LotId)).First();
             if (!lot.Open)
             {
                 AuctionCoreLogger.Logger.Info($"Attempt to close already closed lot: {lot.LotId}");
