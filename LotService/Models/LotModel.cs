@@ -8,7 +8,7 @@ namespace LotService.Models
     {
         [BsonElement("_id")]
         private ObjectId _id = ObjectId.GenerateNewId();
-        private List<BidModel> bids;
+        private List<BidModel> bids = new List<BidModel>();
         private string lotName;
         private string location;
         private bool onlineAuction;
