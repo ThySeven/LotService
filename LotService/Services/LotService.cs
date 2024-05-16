@@ -64,7 +64,7 @@ namespace LotService.Services
                 var invoice = new InvoiceModel
                 {
                     Id = Guid.NewGuid().ToString(),
-                    Description = "Invoice for lot " + lot.LotName,
+                    Description = $"{lot.LotName} - {lot.Location}",
                     PaidStatus = false,
                     Address = user.Address,
                     Email = user.Email,
