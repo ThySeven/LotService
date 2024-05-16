@@ -20,16 +20,10 @@ namespace LotService.Services
 
         public async Task CheckLotTimer()
         {
-            var filter = Builders<LotModel>.Filter.And(
-                Builders<LotModel>.Filter.Where(lot => lot.Open),
-                Builders<LotModel>.Filter.Where(lot => lot.LotEndTime >= DateTime.Now && lot.Open)
-            );
+            var filter = Builders<LotModel>.Filter.Where(lot => lot.LotEndTime <= DateTime.Now && lot.Open);
 
             var expiredLots = await _lotsCollection.Find(filter).ToListAsync();
             //AuctionCoreLogger.Logger.Info($"Closed {expiredLots.Count} lots: {string.Join("\n", expiredLots.Select(x => x.LotName))}");
-
-            if (expiredLots.Count > 0)
-
 
             foreach (var lot in expiredLots)
             {
