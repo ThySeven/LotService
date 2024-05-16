@@ -43,14 +43,12 @@ namespace LotService.Services
                     var message = JsonSerializer.Deserialize<BidModel>(uftString);
                     AuctionCoreLogger.Logger.Info($"Recieved bid from biddingservice: \nBidderid: {message.BidderId} \nAmount: {message.Amount} \nTime: {message.Timestamp}");
                     await _lotservice.UpdateLotPrice(message); // Adjust according to your actual service method
-
                 }
                 catch (Exception ex)
                 {
                     AuctionCoreLogger.Logger.Error(ex);
                     AuctionCoreLogger.Logger.Error("Failed execute bid from rabbitmq");
                 }
-
             };
 
             channel.BasicConsume(queue: Environment.GetEnvironmentVariable("RabbitMQQueueName"),
@@ -65,7 +63,6 @@ namespace LotService.Services
 
         private async Task RunEveryFiveSeconds(CancellationToken stoppingToken)
         {
-            AuctionCoreLogger.Logger.Info("Running 5-second listener");
             while (!stoppingToken.IsCancellationRequested)
             {
                 await Task.Run(() => _lotservice.CheckLotTimer());
@@ -75,7 +72,6 @@ namespace LotService.Services
 
         private async Task RunEverySecond(CancellationToken stoppingToken)
         {
-            AuctionCoreLogger.Logger.Info("Running 1-second listener");
             while (!stoppingToken.IsCancellationRequested)
             {
                 // 
