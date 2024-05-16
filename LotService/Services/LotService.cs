@@ -22,14 +22,17 @@ namespace LotService.Services
         {
             var filter = Builders<LotModel>.Filter.And(
                 Builders<LotModel>.Filter.Where(lot => lot.Open),
-                Builders<LotModel>.Filter.Where(lot => lot.LotCreationTime <= lot.LotCreationTime) // Assuming the lot expires after 30 minutes
+                Builders<LotModel>.Filter.Where(lot => lot.LotEndTime <= DateTime.Now)
             );
 
             var expiredLots = await _lotsCollection.Find(filter).ToListAsync();
+
             foreach (var lot in expiredLots)
             {
                 await CloseLot(lot);
             }
+            if(expiredLots.Count > 0)
+                AuctionCoreLogger.Logger.Info($"Closed {expiredLots.Count} lots: {expiredLots.Select(x => $"\n{x.LotName}")}");
         }
 
         public async Task CloseLot(LotModel lot)
