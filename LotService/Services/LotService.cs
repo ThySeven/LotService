@@ -22,17 +22,22 @@ namespace LotService.Services
         {
             var filter = Builders<LotModel>.Filter.And(
                 Builders<LotModel>.Filter.Where(lot => lot.Open),
-                Builders<LotModel>.Filter.Where(lot => lot.LotEndTime <= DateTime.Now)
+                Builders<LotModel>.Filter.Where(lot => lot.LotEndTime >= DateTime.Now && lot.Open)
             );
 
             var expiredLots = await _lotsCollection.Find(filter).ToListAsync();
+            //AuctionCoreLogger.Logger.Info($"Closed {expiredLots.Count} lots: {string.Join("\n", expiredLots.Select(x => x.LotName))}");
+
+            if (expiredLots.Count > 0)
+
 
             foreach (var lot in expiredLots)
             {
                 await CloseLot(lot);
             }
-            if(expiredLots.Count > 0)
-                AuctionCoreLogger.Logger.Info($"Closed {expiredLots.Count} lots: {expiredLots.Select(x => $"\n{x.LotName}")}");
+            if (expiredLots.Count > 0)
+                AuctionCoreLogger.Logger.Info($"Closed {expiredLots.Count} lots");
+
         }
 
         public async Task CloseLot(LotModel lot)
@@ -41,34 +46,45 @@ namespace LotService.Services
             await _lotsCollection.ReplaceOneAsync(l => l.LotId == lot.LotId, lot);
 
             var highestBid = lot.Bids.OrderByDescending(b => b.Amount).FirstOrDefault();
-            if (highestBid == null)
+            try
             {
-                AuctionCoreLogger.Logger.Error($"Lot {lot.LotName} - {lot.LotId} closed with no bidders");
-                throw new Exception("No bids found for the lot CloseLot");
+                if (highestBid == null)
+                {
+                    AuctionCoreLogger.Logger.Error($"Lot {lot.LotName} - {lot.LotId} closed with no bidders");
+                    throw new Exception("No bids found for the lot CloseLot");
+                }
+
+                var user = await FetchUserAsync(highestBid.BidderId);
+                if (user == null)
+                {
+                    //AuctionCoreLogger.Logger.Error($"Lot {lot.LotName} - {lot.LotId} closed with highest bidder having no account");
+                    //throw new Exception("User not found");
+                }
+
+                var invoice = new InvoiceModel
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Description = "Invoice for lot " + lot.LotName,
+                    PaidStatus = false,
+                    Address = user.Address,
+                    Email = user.Email,
+                    Price = highestBid.Amount
+                };
+
+                var response = await WebManager.GetInstance.HttpClient.PostAsJsonAsync($"http://{Environment.GetEnvironmentVariable("InvoiceServiceEndpoint")}/invoice/create", invoice);
+                if (!response.IsSuccessStatusCode)
+                {
+                    AuctionCoreLogger.Logger.Error($"Lot {lot.LotName} - {lot.LotId} failed to send and create invoice \nStatuscode: {response.StatusCode} \nRequestMessage {response.RequestMessage} \nContent: {response.Content}");
+                    throw new Exception("Failed to create invoice CloseLot");
+                }
+                else
+                {
+                    AuctionCoreLogger.Logger.Info($"{lot.LotName} {lot.LotId} ended at {DateTime.Now} winner: {(await FetchUserAsync(lot.Bids.First().BidderId)).UserName} at {lot.Bids.First().Amount} Dkk");
+                }
             }
-
-            var user = await FetchUserAsync(highestBid.BidderId);
-            if (user == null)
+            catch(Exception ex)
             {
-                //AuctionCoreLogger.Logger.Error($"Lot {lot.LotName} - {lot.LotId} closed with highest bidder having no account");
-                //throw new Exception("User not found");
-            }
-
-            var invoice = new InvoiceModel
-            {
-                Id = Guid.NewGuid().ToString(),
-                Description = "Invoice for lot " + lot.LotName,
-                PaidStatus = false,
-                Address = user.Address,
-                Email = user.Email,
-                Price = highestBid.Amount
-            };
-
-            var response = await WebManager.GetInstance.HttpClient.PostAsJsonAsync($"http://{Environment.GetEnvironmentVariable("InvoiceServiceEndpoint")}/invoice/create", invoice);
-            if (!response.IsSuccessStatusCode)
-            {
-                AuctionCoreLogger.Logger.Error($"Lot {lot.LotName} - {lot.LotId} failed to send and create invoice \nStatuscode: {response.StatusCode} \nRequestMessage {response.RequestMessage} \nContent: {response.Content}");
-                throw new Exception("Failed to create invoice CloseLot");
+                AuctionCoreLogger.Logger.Error(ex.Message);
             }
         }
 
@@ -168,14 +184,12 @@ namespace LotService.Services
             try
             {
                 user = await FetchUserAsync(bid.BidderId);
-
             }
             catch(Exception ex)
             {
                 AuctionCoreLogger.Logger.Error($"User for bid not found {bid.LotId} {bid.BidderId}");
                 AuctionCoreLogger.Logger.Error($"{ex}");
                 throw new Exception("User not found UpdateLotPrice");
-
             }
 
 
