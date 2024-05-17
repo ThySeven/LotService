@@ -25,7 +25,7 @@
         "VAULT_IP": "https://localhost:8201",
         "VAULT_SECRET": "1a2b3c4d-5e6f-7g8h-9i0j-123456789abc",
         "GrafanaHostname": "lotservice",
-        "UserServiceEndpoint": "localhost:5143",
+        "UserServiceEndpoint": "localhost:3015",
         "InvoiceServiceEndpoint": "localhost:3005",
         "BiddingServiceEndpoint": "localhost:3020",
         "PublicIP": "localhost:9090"

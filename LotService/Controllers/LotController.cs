@@ -137,16 +137,16 @@ public class LotController : ControllerBase
     }
 
     [HttpPut("close")]
-    public async Task<IActionResult> CloseLot([FromBody] LotModel lot)
+    public async Task<IActionResult> CloseLot([FromBody] string LotId)
     {
-        if (lot == null)
+        if (LotId == null)
         {
             return BadRequest();
         }
         try
         {
-            await _lotService.CloseLot(lot);
-            return Ok(lot);
+            var result = await _lotService.CloseLot(LotId);
+            return Ok(result);
         }
         catch (Exception ex)
         {
