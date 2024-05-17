@@ -107,7 +107,7 @@ public class LotController : ControllerBase
         }
         try
         {
-            await _lotService.UpdateLot(lot, l);
+            await _lotService.UpdateLot(lot);
             return Ok(lot);
         }
         catch (Exception ex)
