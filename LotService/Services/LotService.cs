@@ -161,7 +161,7 @@ namespace LotService.Services
             return await _lotsCollection.Find(_ => true).ToListAsync();
         }
 
-        public async Task UpdateLot(LotModel lot, LotModel l)
+        public async Task UpdateLot(LotModel lot)
         {
 
             var update = Builders<LotModel>.Update
