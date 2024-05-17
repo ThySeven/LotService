@@ -56,9 +56,9 @@ namespace LotService.Services
                                  consumer: biddingConsumer);
 
             var task1 = Task.Run(async () => await RunEveryFiveSeconds(stoppingToken));
-            var task2 = Task.Run(async () => await RunEverySecond(stoppingToken));
+            //var task2 = Task.Run(async () => await RunEverySecond(stoppingToken));
 
-            await Task.WhenAll(task1, task2);
+            await Task.WhenAll(task1);
         }
 
         private async Task RunEveryFiveSeconds(CancellationToken stoppingToken)
