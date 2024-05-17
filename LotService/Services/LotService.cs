@@ -92,7 +92,8 @@ namespace LotService.Services
 
         private async Task<UserModelDTO> FetchUserAsync(string bidderId)
         {
-            var response = await WebManager.GetInstance.HttpClient.GetAsync($"http://{Environment.GetEnvironmentVariable("UserServiceEndpoint")}/user/{bidderId}");
+            var endpoint = Environment.GetEnvironmentVariable("UserServiceEndpoint");
+            var response = await WebManager.GetInstance.HttpClient.GetAsync($"http://{endpoint}/user/{bidderId}");
 
             if (response.IsSuccessStatusCode)
             {
