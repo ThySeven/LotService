@@ -22,7 +22,7 @@ namespace LotService.Services
         {
             var filter = Builders<LotModel>.Filter.And(
                 Builders<LotModel>.Filter.Where(lot => lot.Open),
-                Builders<LotModel>.Filter.Where(lot => lot.LotEndTime.Ticks < DateTime.Now.Ticks)
+                Builders<LotModel>.Filter.Where(lot => lot.LotEndTime < DateTime.Now)
             );
 
             var expiredLots = await _lotsCollection.Find(filter).ToListAsync();
