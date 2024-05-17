@@ -161,15 +161,15 @@ namespace LotService.Services
             return await _lotsCollection.Find(_ => true).ToListAsync();
         }
 
-        public async Task UpdateLot(LotModel lot)
+        public async Task UpdateLot(LotModel lot, LotModel l)
         {
+
             var update = Builders<LotModel>.Update
                 .Set(l => l.LotName, lot.LotName)
                 .Set(l => l.Location, lot.Location)
                 .Set(l => l.OnlineAuction, lot.OnlineAuction)
                 .Set(l => l.StartingPrice, lot.StartingPrice)
                 .Set(l => l.MinimumBid, lot.MinimumBid)
-                .Set(l => l.Open, lot.Open)
                 .Set(l => l.LotCreationTime, lot.LotCreationTime);
 
             await _lotsCollection.UpdateOneAsync(l => l.LotId == lot.LotId, update);
