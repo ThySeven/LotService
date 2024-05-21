@@ -6,6 +6,7 @@ using System.Security.Claims;
 using System.Text;
 using LotService.Models;
 using LotService.Services;
+using ZstdSharp.Unsafe;
 
 namespace LotService.Controllers;
 
@@ -153,6 +154,46 @@ public class LotController : ControllerBase
             AuctionCoreLogger.Logger.Warn("Failed to create lot" + ex);
             return BadRequest();
         }
+    }
+
+    [Authorize]
+    [HttpGet("/api/legal/auctions")]
+    public async Task<IActionResult> GetAllLotsInteropability([FromQuery] DateTime? startDate)
+    {
+        var lotModels = await _lotService.GetLots();
+
+        // Convert LotModel to Auction
+        var auctions = lotModels.Select(AuctionMapper.MapToAuction).ToList();
+
+        if (startDate.HasValue)
+        {
+            auctions = auctions.Where(a => a.StartDate >= startDate.Value).ToList();
+        }
+
+        if (!auctions.Any())
+        {
+            return NotFound(new { error = "No auctions found" });
+        }
+
+        return Ok(auctions);
+
+    }
+
+    [Authorize]
+    [HttpGet("/api/legal/auctions/{auctionId}")]
+    public async Task<IActionResult> GetAuctionById([FromRoute] Guid auctionId)
+    {
+        var lotModels = await _lotService.GetLots();
+        var auction = lotModels
+            .Select(AuctionMapper.MapToAuction)
+            .FirstOrDefault(a => a.Id == auctionId);
+
+        if (auction == null)
+        {
+            return NotFound(new { error = "Auction not found" });
+        }
+
+        return Ok(auction);
     }
 
 }
