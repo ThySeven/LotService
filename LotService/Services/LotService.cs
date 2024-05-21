@@ -232,7 +232,7 @@ namespace LotService.Services
                     TimeStamp = bid.Timestamp,
                     ReceiverMail = oldUser.Email,
                     NewLotPrice = bid.Amount,
-                    NewBidLink = $"http://{Environment.GetEnvironmentVariable("BiddingServiceEndpoint")}/lot/{lot.LotId}/{lot.Bids.OrderByDescending(x => x.Amount).First().Amount + lot.MinimumBid}"
+                    NewBidLink = $"http://{Environment.GetEnvironmentVariable("BiddingServiceEndpoint")}/lot/{lot.LotId}"
                 };
                 var response = await WebManager.GetInstance.HttpClient.PostAsJsonAsync($"http://{Environment.GetEnvironmentVariable("BiddingServiceEndpoint")}/api/notification", notification);
                 if (response.IsSuccessStatusCode)
