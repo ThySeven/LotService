@@ -100,7 +100,3 @@ LotService follows a microservice architecture within the broader Auction Core S
 ## Security
 
 LotService uses HashiCorp Vault to manage secrets securely. JWT secrets are stored in Vault and fetched dynamically, ensuring that sensitive information is handled with care.
-
-## License
-
-LotService is [MIT licensed](LICENSE).
