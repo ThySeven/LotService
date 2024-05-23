@@ -65,14 +65,14 @@ builder.Services
     {
         OnMessageReceived = context =>
         {
-            AuctionCoreLogger.Logger.Info($"Received API Call from {context.Request.Headers.Origin}");
+            //AuctionCoreLogger.Logger.Info($"Received API Call from {context.Request.Headers.Origin}");
 
             if (context.Request.Headers.TryGetValue("X-Internal-ApiKey", out var extractedApiKey))
             {
                 var internalApiKey = vaultInternalApiKey; // or fetch from configuration
                 if (internalApiKey.Equals(extractedApiKey))
                 {
-                    AuctionCoreLogger.Logger.Info($"JWTBypass {context.Request.Headers.Origin}");
+                    //AuctionCoreLogger.Logger.Info($"JWTBypass {context.Request.Headers.Origin}");
                     context.HttpContext.Items["InternalRequest"] = true;
 
                     // Skip JWT token processing

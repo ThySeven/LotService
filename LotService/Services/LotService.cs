@@ -77,7 +77,7 @@ namespace LotService.Services
                     Price = highestBid.Amount
                 };
 
-                var response = await WebManager.GetInstance.HttpClient.PostAsJsonAsync($"http://{Environment.GetEnvironmentVariable("InvoiceServiceEndpoint")}/invoice/create", invoice);
+                var response = await WebManager.GetInstance.HttpClient.PostAsJsonAsync($"http://{Environment.GetEnvironmentVariable("NginxEndpoint")}/invoice/create", invoice);
                 if (!response.IsSuccessStatusCode)
                 {
                     AuctionCoreLogger.Logger.Error($"Lot {lot.LotName} - {lot.LotId} failed to send and create invoice \nStatuscode: {response.StatusCode} \nRequestMessage {response.RequestMessage} \nContent: {response.Content}");
@@ -98,7 +98,7 @@ namespace LotService.Services
 
         private async Task<UserModelDTO> FetchUserAsync(string bidderId)
         {
-            var endpoint = Environment.GetEnvironmentVariable("UserServiceEndpoint");
+            var endpoint = Environment.GetEnvironmentVariable("NginxEndpoint");
             var response = await WebManager.GetInstance.HttpClient.GetAsync($"http://{endpoint}/user/{bidderId}");
 
             if (response.IsSuccessStatusCode)
@@ -232,9 +232,9 @@ namespace LotService.Services
                     TimeStamp = bid.Timestamp,
                     ReceiverMail = oldUser.Email,
                     NewLotPrice = bid.Amount,
-                    NewBidLink = $"http://{Environment.GetEnvironmentVariable("BiddingServiceEndpoint")}/api/bidding/lot/{lot.LotId}"
+                    NewBidLink = $"http://{Environment.GetEnvironmentVariable("NginxEndpoint")}/api/bidding/lot/{lot.LotId}"
                 };
-                var response = await WebManager.GetInstance.HttpClient.PostAsJsonAsync($"http://{Environment.GetEnvironmentVariable("BiddingServiceEndpoint")}/api/notification", notification);
+                var response = await WebManager.GetInstance.HttpClient.PostAsJsonAsync($"http://{Environment.GetEnvironmentVariable("NginxEndpoint")}/api/notification", notification);
                 if (response.IsSuccessStatusCode)
                 {
                     AuctionCoreLogger.Logger.Info($"Overbid notification sent to notificationservice for: {oldUser.Email}");
