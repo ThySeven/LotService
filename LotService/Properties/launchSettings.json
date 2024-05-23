@@ -28,6 +28,7 @@
         "UserServiceEndpoint": "localhost:3015",
         "InvoiceServiceEndpoint": "localhost:3005",
         "BiddingServiceEndpoint": "localhost:3020",
+        "NginxEndpoint": "localhost:3001",
         "PublicIP": "localhost:9090"
       }
     },
@@ -50,6 +51,7 @@
         "UserServiceEndpoint": "localhost:3015",
         "InvoiceServiceEndpoint": "localhost:3005",
         "BiddingServiceEndpoint": "localhost:3020",
+        "NginxEndpoint": "localhost:3001",
         "PublicIP": "localhost:9090"
       }
     },
