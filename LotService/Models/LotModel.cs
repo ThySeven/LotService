@@ -7,7 +7,7 @@ namespace LotService.Models
     public class LotModel
     {
         [BsonElement("_id")]
-        private ObjectId _id = ObjectId.GenerateNewId();
+        private Guid _id = Guid.NewGuid();
         private List<BidModel>? bids = new List<BidModel>();
         private string lotName;
         private string location;
@@ -18,14 +18,14 @@ namespace LotService.Models
         private DateTime lotCreationTime;
         private DateTime lotEndTime;
 
-        public string LotId
+        public string? LotId
         {
             get => _id.ToString();
             set
             {
                 if (string.IsNullOrWhiteSpace(value))
                     throw new ArgumentException("Lot ID cannot be null or empty.");
-                _id = ObjectId.Parse(value);
+                _id = Guid.Parse(value);
             }
         }
 
