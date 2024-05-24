@@ -7,7 +7,7 @@ namespace LotService.Models
     public class LotModel
     {
         [BsonElement("_id")]
-        private Guid _id = Guid.NewGuid();
+        private string _id = Guid.NewGuid().ToString();
         private List<BidModel>? bids = new List<BidModel>();
         private string lotName;
         private string location;
@@ -20,12 +20,16 @@ namespace LotService.Models
 
         public string? LotId
         {
-            get => _id.ToString();
+            get => _id;
             set
             {
                 if (string.IsNullOrWhiteSpace(value))
                     throw new ArgumentException("Lot ID cannot be null or empty.");
-                _id = Guid.Parse(value);
+
+                if (!Guid.TryParse(value, out _))
+                    throw new ArgumentException("Lot ID must be a valid GUID.");
+
+                _id = value;
             }
         }
 
