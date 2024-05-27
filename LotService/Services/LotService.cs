@@ -172,6 +172,11 @@ namespace LotService.Services
                 .Set(l => l.MinimumBid, lot.MinimumBid)
                 .Set(l => l.LotCreationTime, lot.LotCreationTime);
 
+            if (lot.Open)
+            {
+                update.Set(l => l.Open, lot.Open);
+            }
+
             await _lotsCollection.UpdateOneAsync(l => l.LotId == lot.LotId, update);
             AuctionCoreLogger.Logger.Info($"Lot {lot.LotName} - {lot.LotId} updated");
         }

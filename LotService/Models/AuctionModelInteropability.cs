@@ -22,7 +22,7 @@ namespace LotService.Models
         {
             return new AuctionModelInteropability
             {
-                Id = ObjectIdToGuid(ObjectId.Parse(lot.LotId)), // You might want to consider a different mapping if LotId should map to Id
+                Id = Guid.Parse(lot.LotId), // You might want to consider a different mapping if LotId should map to Id
                 Title = lot.LotName,
                 Description = $"{lot.LotName} located in {lot.Location}",
                 StartDate = lot.LotCreationTime,
@@ -33,18 +33,6 @@ namespace LotService.Models
                 CreatedAt = lot.LotCreationTime
             };
         }
-
-        public static Guid ObjectIdToGuid(ObjectId objectId)
-        {
-            byte[] objectIdBytes = objectId.ToByteArray();
-            byte[] guidBytes = new byte[16];
-
-            // Copy ObjectId bytes to GUID bytes (padded to 16 bytes)
-            Array.Copy(objectIdBytes, guidBytes, objectIdBytes.Length);
-
-            return new Guid(guidBytes);
-        }
-
     }
 
 }
