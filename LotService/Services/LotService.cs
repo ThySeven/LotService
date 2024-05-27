@@ -188,7 +188,7 @@ namespace LotService.Services
             AddSet(l => l.MinimumBid, lot.MinimumBid, nameof(lot.MinimumBid));
             AddSet(l => l.LotCreationTime, lot.LotCreationTime, nameof(lot.LotCreationTime));
 
-            if (lot.Open == true)
+            if (lot.Open == true || lot.Open == false)
             {
                 AddSet(l => l.Open, lot.Open, nameof(lot.Open));
             }
