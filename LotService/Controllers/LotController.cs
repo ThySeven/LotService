@@ -110,8 +110,8 @@ public class LotController : ControllerBase
         }
         try
         {
-            await _lotService.UpdateLot(lot);
-            return Ok(lot);
+            LotModel result = await _lotService.UpdateLot(lot);
+            return Ok(result);
         }
         catch (Exception ex)
         {

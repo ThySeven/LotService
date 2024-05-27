@@ -1,5 +1,6 @@
 ﻿using LotService.Models;
 using MongoDB.Driver;
+using System.Linq.Expressions;
 using System.Text.Json;
 
 namespace LotService.Services
@@ -168,24 +169,42 @@ namespace LotService.Services
             return await _lotsCollection.Find(_ => true).ToListAsync();
         }
 
-        public async Task UpdateLot(LotModel lot)
+        public async Task<LotModel> UpdateLot(LotModel lot)
         {
 
-            var update = Builders<LotModel>.Update
-                .Set(l => l.LotName, lot.LotName)
-                .Set(l => l.Location, lot.Location)
-                .Set(l => l.OnlineAuction, lot.OnlineAuction)
-                .Set(l => l.StartingPrice, lot.StartingPrice)
-                .Set(l => l.MinimumBid, lot.MinimumBid)
-                .Set(l => l.LotCreationTime, lot.LotCreationTime);
+            var updateDefinitions = new List<UpdateDefinition<LotModel>>();
+            var changes = new List<string>();
+
+            void AddSet<TField>(Expression<Func<LotModel, TField>> field, TField value, string fieldName)
+            {
+                updateDefinitions.Add(Builders<LotModel>.Update.Set(field, value));
+                changes.Add(fieldName);
+            }
+
+            AddSet(l => l.LotName, lot.LotName, nameof(lot.LotName));
+            AddSet(l => l.Location, lot.Location, nameof(lot.Location));
+            AddSet(l => l.OnlineAuction, lot.OnlineAuction, nameof(lot.OnlineAuction));
+            AddSet(l => l.StartingPrice, lot.StartingPrice, nameof(lot.StartingPrice));
+            AddSet(l => l.MinimumBid, lot.MinimumBid, nameof(lot.MinimumBid));
+            AddSet(l => l.LotCreationTime, lot.LotCreationTime, nameof(lot.LotCreationTime));
 
             if (lot.Open == true)
             {
-                update.Set(l => l.Open, lot.Open);
+                AddSet(l => l.Open, lot.Open, nameof(lot.Open));
             }
 
-            await _lotsCollection.UpdateOneAsync(l => l.LotId == lot.LotId, update);
-            AuctionCoreLogger.Logger.Info($"Lot {lot.LotName} - {lot.LotId} updated");
+            if (updateDefinitions.Any())
+            {
+                var combinedUpdate = Builders<LotModel>.Update.Combine(updateDefinitions);
+                await _lotsCollection.UpdateOneAsync(l => l.LotId == lot.LotId, combinedUpdate);
+
+                AuctionCoreLogger.Logger.Info($"Lot {lot.LotName} - {lot.LotId} updated. Fields changed: {string.Join(", ", changes)}");
+            }
+            else
+            {
+                AuctionCoreLogger.Logger.Info($"No changes made to Lot {lot.LotName} - {lot.LotId}");
+            }
+            return await _lotsCollection.Find(lot => lot.LotId == lot.LotId).FirstOrDefaultAsync();
         }
 
         public async Task UpdateLotPrice(BidModel bid)
