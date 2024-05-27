@@ -29,7 +29,7 @@
         "InvoiceServiceEndpoint": "localhost:3005",
         "BiddingServiceEndpoint": "localhost:3020",
         "NginxEndpoint": "localhost:3001",
-        "PublicIP": "localhost:9090"
+        "PublicIP": "https://api.gronogolsen.dk"
       }
     },
     "https": {
@@ -52,7 +52,7 @@
         "InvoiceServiceEndpoint": "localhost:3005",
         "BiddingServiceEndpoint": "localhost:3020",
         "NginxEndpoint": "localhost:3001",
-        "PublicIP": "localhost:9090"
+        "PublicIP": "https://api.gronogolsen.dk"
       }
     },
     "IIS Express": {

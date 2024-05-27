@@ -237,7 +237,7 @@ namespace LotService.Services
                     TimeStamp = bid.Timestamp,
                     ReceiverMail = oldUser.Email,
                     NewLotPrice = bid.Amount,
-                    NewBidLink = $"http://{Environment.GetEnvironmentVariable("NginxEndpoint")}/api/bidding/lot/{lot.LotId}"
+                    NewBidLink = $"{Environment.GetEnvironmentVariable("PublicIP")}/api/bidding/lot/{lot.LotId}"
                 };
                 var response = await WebManager.GetInstance.HttpClient.PostAsJsonAsync($"http://{Environment.GetEnvironmentVariable("NginxEndpoint")}/api/notification", notification);
                 if (response.IsSuccessStatusCode)
