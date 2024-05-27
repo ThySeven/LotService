@@ -14,7 +14,7 @@ namespace LotService.Models
         private bool onlineAuction;
         private int startingPrice;
         private int minimumBid;
-        private bool open;
+        private bool? open;
         private DateTime lotCreationTime;
         private DateTime lotEndTime;
 
@@ -100,7 +100,7 @@ namespace LotService.Models
             }
         }
 
-        public bool Open { get => open; set => open = value; }
+        public bool? Open { get => open; set => open = value; }
         public DateTime LotEndTime { 
             get => lotEndTime; set
             {

@@ -28,7 +28,7 @@ namespace LotService.Models
                 StartDate = lot.LotCreationTime,
                 EndDate = lot.LotEndTime,
                 CurrentBid = lot.Bids?.OrderByDescending(b => b.Amount).FirstOrDefault()?.Amount ?? (decimal)lot.StartingPrice,
-                PurchasedBy = lot.Open ? "Auction has not ended" : lot.Bids?.OrderByDescending(b => b.Amount).FirstOrDefault()?.BidderId ?? "Purchaser not foind",
+                PurchasedBy = lot.Open == false ? "Auction has not ended" : lot.Bids?.OrderByDescending(b => b.Amount).FirstOrDefault()?.BidderId ?? "Purchaser not foind",
                 CreatedBy = "CEO, Kell Olsen",
                 CreatedAt = lot.LotCreationTime
             };

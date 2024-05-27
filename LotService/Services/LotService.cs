@@ -21,7 +21,7 @@ namespace LotService.Services
         public async Task CheckLotTimer()
         {
             var filter = Builders<LotModel>.Filter.And(
-                Builders<LotModel>.Filter.Where(lot => lot.Open),
+                Builders<LotModel>.Filter.Where(lot => lot.Open == true),
                 Builders<LotModel>.Filter.Where(lot => lot.LotEndTime < DateTime.Now)
             );
 
@@ -39,11 +39,12 @@ namespace LotService.Services
         public async Task<LotModel> CloseLot(string myLotId)
         {
             LotModel lot = await _lotsCollection.Find(l => l.LotId == myLotId).FirstOrDefaultAsync();
-            if (!lot.Open)
+            if (lot.Open == false)
             {
                 AuctionCoreLogger.Logger.Info($"Attempt to close already closed lot: {lot.LotId}");
                 return lot;
             }
+
             lot.Open = false;
 
             var update = Builders<LotModel>.Update
@@ -140,6 +141,12 @@ namespace LotService.Services
 
         public async Task CreateLot(LotModel lot)
         {
+
+            if (lot.Open == null)
+            {
+                AuctionCoreLogger.Logger.Error($"Attempt to create lot with open status not set {lot.LotName} - {lot.LotId}");
+                throw new Exception("Lot cannot be created with no open status");   
+            }
             var result = _lotsCollection.InsertOneAsync(lot);
             AuctionCoreLogger.Logger.Info($"Lot {lot.LotName} - {lot.LotId} created");
         }
@@ -172,7 +179,7 @@ namespace LotService.Services
                 .Set(l => l.MinimumBid, lot.MinimumBid)
                 .Set(l => l.LotCreationTime, lot.LotCreationTime);
 
-            if (lot.Open)
+            if (lot.Open == true)
             {
                 update.Set(l => l.Open, lot.Open);
             }
