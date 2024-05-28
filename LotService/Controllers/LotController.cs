@@ -26,7 +26,7 @@ public class LotController : ControllerBase
         _lotService = lotService;
     }
 
-
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] LotModel lot)
     {
@@ -46,6 +46,7 @@ public class LotController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpDelete("{lotId}")]
     public async Task<IActionResult> Delete(string lotId)
     {
@@ -99,6 +100,7 @@ public class LotController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpPut]
     public async Task<IActionResult> UpdateLot([FromBody] LotModel lot)
     {
@@ -108,8 +110,8 @@ public class LotController : ControllerBase
         }
         try
         {
-            await _lotService.UpdateLot(lot);
-            return Ok(lot);
+            LotModel result = await _lotService.UpdateLot(lot);
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -118,6 +120,7 @@ public class LotController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpPut("bid")]
     public async Task<IActionResult> UpdateLotPrice([FromBody] BidModel bid)
     {
@@ -137,6 +140,7 @@ public class LotController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpPut("close")]
     public async Task<IActionResult> CloseLot([FromBody] string LotId)
     {

@@ -7,25 +7,29 @@ namespace LotService.Models
     public class LotModel
     {
         [BsonElement("_id")]
-        private ObjectId _id = ObjectId.GenerateNewId();
+        private string _id = Guid.NewGuid().ToString();
         private List<BidModel>? bids = new List<BidModel>();
         private string lotName;
         private string location;
         private bool onlineAuction;
         private int startingPrice;
         private int minimumBid;
-        private bool open;
+        private bool? open;
         private DateTime lotCreationTime;
         private DateTime lotEndTime;
 
-        public string LotId
+        public string? LotId
         {
-            get => _id.ToString();
+            get => _id;
             set
             {
                 if (string.IsNullOrWhiteSpace(value))
                     throw new ArgumentException("Lot ID cannot be null or empty.");
-                _id = ObjectId.Parse(value);
+
+                if (!Guid.TryParse(value, out _))
+                    throw new ArgumentException("Lot ID must be a valid GUID.");
+
+                _id = value;
             }
         }
 
@@ -96,7 +100,7 @@ namespace LotService.Models
             }
         }
 
-        public bool Open { get => open; set => open = value; }
+        public bool? Open { get => open; set => open = value; }
         public DateTime LotEndTime { 
             get => lotEndTime; set
             {
