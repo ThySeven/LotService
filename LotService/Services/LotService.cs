@@ -241,6 +241,16 @@ namespace LotService.Services
                 AuctionCoreLogger.Logger.Warn($"Bid made that is under the current price by {user.UserName} \nAttempt:{bid.Amount}\nHighest Bid: {highestBid.Amount}");
                 return;
             }
+            else if(bid.Amount < lot.StartingPrice)
+            {
+                AuctionCoreLogger.Logger.Warn($"Bid made that is under the starting price by {user.UserName} \nAttempt:{bid.Amount}\nStarting Price: {lot.StartingPrice}");
+                return;
+            }
+            else if (highestBid != null && bid.Amount - highestBid.Amount < lot.MinimumBid)
+            {
+                AuctionCoreLogger.Logger.Warn($"Bid made that is under the minimum bid by {user.UserName} \nAttempt:{bid.Amount}\nMinimum Bid: {lot.MinimumBid}");
+                return;
+            }
 
 
             lot.Bids.Add(bid);
